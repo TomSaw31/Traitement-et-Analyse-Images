@@ -236,7 +236,18 @@ unsigned char Otsu(Matrix Hist)
  */
 Matrix Hist2CumHist(Matrix Hist)
 {
-  AFAIRE(NULL);
+  int lignes = MatNbRow(Hist);
+  int colonnes = MatNbCol(Hist);
+
+  Matrix matHist = MatCopy(Hist);
+
+  int ** cumHist = MatGetInt(matHist);
+
+  for(int i = 1; i < 256; i++) {
+    cumHist[0][i] += cumHist[0][i-1];
+    printf("%d ", cumHist[0][i]);
+  } 
+  return matHist;
 }
 
 
@@ -248,7 +259,21 @@ Matrix Hist2CumHist(Matrix Hist)
  */
 Image AppLUT(Image Im, Matrix LUT)
 {
-  AFAIRE(NULL);
+  int lignes = ImNbRow(Im);
+  int colonnes = ImNbCol(Im);
+
+  Image ImLUT = ImCopy(Im);
+  unsigned char ** matLUT = ImGetI(ImLUT);
+
+  unsigned char ** matIm = ImGetI(Im);
+  unsigned int ** histLUT = MatGetInt(LUT);
+  
+  for(int i = 0; i < lignes; i++) {
+    for(int j = 0; j < colonnes; j++) {
+      matLUT[i][j] = histLUT[0][matIm[i][j]];
+    }
+  } 
+  return ImLUT;
 }
 
 
@@ -262,7 +287,15 @@ Image AppLUT(Image Im, Matrix LUT)
  */
 Matrix HistSpecif(Matrix CumHist, Matrix DesCumHist)
 {
-  AFAIRE(NULL);
+  Matrix Specif = MatCAlloc(Int, 1, 256);
+  unsigned char ** matSpecif = MatGetInt(Specif);
+  unsigned char ** matCumHist = MatGetInt(CumHist);
+  unsigned char ** matDesCumHist = MatGetInt(DesCumHist);
+
+  for(int i = 0; i < 256; i++) {
+    unsigned char valeur = matCumHist[0][i];
+  }
+  return Specif;
 }
 
 
