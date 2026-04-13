@@ -221,7 +221,6 @@ unsigned char Otsu(Matrix Hist)
       min = cout_i;
       S = i;
     }
-    //printf("%f\n",min);
   }
   return S;
 }
@@ -236,9 +235,6 @@ unsigned char Otsu(Matrix Hist)
  */
 Matrix Hist2CumHist(Matrix Hist)
 {
-  int lignes = MatNbRow(Hist);
-  int colonnes = MatNbCol(Hist);
-
   Matrix matHist = MatCopy(Hist);
 
   int ** cumHist = MatGetInt(matHist);
@@ -266,7 +262,7 @@ Image AppLUT(Image Im, Matrix LUT)
   unsigned char ** matLUT = ImGetI(ImLUT);
 
   unsigned char ** matIm = ImGetI(Im);
-  unsigned int ** histLUT = MatGetInt(LUT);
+  int ** histLUT = MatGetInt(LUT);
   
   for(int i = 0; i < lignes; i++) {
     for(int j = 0; j < colonnes; j++) {
@@ -288,12 +284,24 @@ Image AppLUT(Image Im, Matrix LUT)
 Matrix HistSpecif(Matrix CumHist, Matrix DesCumHist)
 {
   Matrix Specif = MatCAlloc(Int, 1, 256);
-  unsigned char ** matSpecif = MatGetInt(Specif);
-  unsigned char ** matCumHist = MatGetInt(CumHist);
-  unsigned char ** matDesCumHist = MatGetInt(DesCumHist);
+  int ** matSpecif = MatGetInt(Specif);
+  int ** matCumHist = MatGetInt(CumHist);
+  int ** matDesCumHist = MatGetInt(DesCumHist);
 
   for(int i = 0; i < 256; i++) {
-    unsigned char valeur = matCumHist[0][i];
+    int valeur = matCumHist[0][i];
+    int j = 0;
+    int distanceRef = abs(matDesCumHist[0][0] - valeur);
+    int indexDes = 0;
+    while (j < 256) {
+      int distance = abs(matDesCumHist[0][j] - valeur);
+      if (distance < distanceRef) {
+        distanceRef = distance;
+        indexDes = j;
+      }
+      j++;
+    }
+    matSpecif[0][i] = indexDes;
   }
   return Specif;
 }
@@ -367,6 +375,40 @@ int NotValidTernSE(Matrix StructuringElement)
  */
 Image Thinning(Image Im, Matrix StructuringElement)
 {
-  AFAIRE(NULL);
+  int lignes = ImNbRow(Im);
+  int colonnes = ImNbCol(Im);
+  unsigned char ** matIm = ImGetI(Im);
+
+
+  Image ImRes = ImCopy(Im);
+  unsigned char ** matRes = ImGetI(ImRes);
+
+  int ** matSE = MatGetInt(StructuringElement);
+  int lignesSE = MatNbRow(StructuringElement) / 2;
+  int colonnesSE = MatNbCol(StructuringElement) / 2;
+
+  for(int l = 0; l < lignes; l++) {
+    for(int c = 0; c < colonnes; c++) {
+      int valide = 1;
+      for(int i = -lignesSE; i < lignesSE + 1&& valide; i++) {
+        for(int j = -colonnesSE; j < colonnesSE + 1 && valide; j++) {
+          int elem = matSE[i+lignesSE][j+colonnesSE];
+          if (elem == 2) {
+            valide = 1;
+          } else {
+            int valeur;
+            if (l+i >= lignes || l+i < 0 || c+j >= colonnes || c+j < 0) {
+              valeur = matIm[l][c];
+            } else {
+              valeur = matIm[l+i][c+j];
+            }
+            valide = elem == valeur;
+          }
+        }
+      }
+      matRes[l][c] = valide ? 0 : matRes[l][c];
+    }
+  }
+  return ImRes;
 }
 
